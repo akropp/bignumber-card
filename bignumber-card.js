@@ -1,4 +1,23 @@
-import { formatNumber } from './lib/format_number';
+// Source: https://github.com/home-assistant/frontend/blob/dev/src/common/datetime/seconds_to_duration.ts
+
+const leftPad = (num) => (num < 10 ? `0${num}` : num);
+
+export function secondsToDuration(d) {
+    const h = Math.floor(d / 3600);
+    const m = Math.floor((d % 3600) / 60);
+    const s = Math.floor((d % 3600) % 60);
+
+    if (h > 0) {
+        return `${h}:${leftPad(m)}:${leftPad(s)}`;
+    }
+    if (m > 0) {
+        return `${m}:${leftPad(s)}`;
+    }
+    if (s > 0) {
+        return '' + s;
+    }
+    return null;
+}
 
 class BigNumberCard extends HTMLElement {
   _DEFAULT_STYLE(){return 'var(--label-badge-blue)';}
@@ -109,6 +128,8 @@ class BigNumberCard extends HTMLElement {
     return 100-100 * (value - min) / (max - min);
   }
 
+  _formatNumber()
+
   set hass(hass) {
     const config = this._config;
     const root = this.shadowRoot;
@@ -126,35 +147,37 @@ class BigNumberCard extends HTMLElement {
       root.querySelector("ha-card").style.setProperty('--bignumber-color', `${this._getColor(entityState, config)}`);
       this._entityState = entityState
 
-      let value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round)) 
+      let value = undefined;
+      let unit = measurement;
       if (config.format) {
         if (isNaN(parseFloat(value)) || !isFinite(value)) {
             // do nothing if not a number
         } else if (config.format === 'brightness') {
-            let value = Math.round((value / 255) * 100);
-            unit = '%';
+          value = Math.round((parseFloat(entityState) / 255) * 100);
+          unit = '%';
         } else if (config.format.startsWith('duration')) {
-          let value = secondsToDuration(config.format === 'duration-m' ? value / 1000 : value);
-            unit = undefined;
+          value = secondsToDuration(config.format === 'duration-m' ? parseFloat(entityState) / 1000 : parseFloat(entityState));
+          unit = undefined;
         } else if (config.format.startsWith('precision')) {
-            const precision = parseInt(config.format.slice(-1), 10);
-            let value = formatNumber(parseFloat(value), hass.locale, {
-                minimumFractionDigits: precision,
-                maximumFractionDigits: precision,
-            });
+          const precision = parseInt(config.format.slice(-1), 10);
+          value = parseFloat(value).toFixed(precision)
         } else if (config.format === 'kilo') {
-          let value = formatNumber(value / 1000, hass.locale, { maximumFractionDigits: 2 });
+          value = (parseFloat(entityState) / 1000).toFixed(2);
         } else if (config.format === 'invert') {
-          let value = formatNumber(value - value * 2, hass.locale);
+          value = (parseFloat(entityState) - parseFloat(entityState) * 2)
+          if (config.round != null) { value = value.toFixed(config.round); }
         } else if (config.format === 'position') {
-          let value = formatNumber(100 - value, hass.locale);
+          value = (100 - parseFloat(entityState));
+          if (config.round != null) { value = value.toFixed(config.round); }
         }
+      } else {
+        value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round));
       }
   
       if (config.hideunit==true) 
         { root.getElementById("value").textContent = `${value}`; }
       else 
-        { root.getElementById("value").innerHTML = `${value}<small>${measurement}</small>`; }
+        { root.getElementById("value").innerHTML = `${value}<small>${unit}</small>`; }
       if (this.isNoneConfig){
         if (isNaN(value)) {
           if (config.noneString) {
