@@ -146,13 +146,14 @@ class BigNumberCard extends HTMLElement {
       : hass.states[config.entity].attributes.unit_of_measurement || "";
 
 
-    if (entityState !== this._entityState) {
+    if (entityState !== this._entityState || displayState != this._displayState) {
       if (config.min !== undefined && config.max !== undefined) {
         root.querySelector("ha-card").style.setProperty('--bignumber-percent', `${this._translatePercent(entityState, config.min, config.max)}%`);
       }
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getStyle(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-color', `${this._getColor(entityState, config)}`);
       this._entityState = entityState
+      this._displayState = displayState
 
       let value = undefined;
       let unit = measurement;
