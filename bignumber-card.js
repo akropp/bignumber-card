@@ -42,6 +42,8 @@ class BigNumberCard extends HTMLElement {
     if (!cardConfig.noneString) cardConfig.nonestring = null;
     if (!cardConfig.noneCardClass) cardConfig.noneCardClass = null;
     if (!cardConfig.noneValueClass) cardConfig.noneValueClass = null;
+    if (!cardConfig.displayEntity) cardConfig.displayEntity = null;
+    if (!cardConfig.displayAttribute) cardConfig.displayAttribute = null;
     this.isNoneConfig = Boolean(cardConfig.noneString || cardConfig.noneCardClass || cardConfig.noneValueClass)
 
     const card = document.createElement('ha-card');
@@ -134,7 +136,14 @@ class BigNumberCard extends HTMLElement {
     const entityState = config.attribute 
       ? hass.states[config.entity].attributes[config.attribute] 
       : hass.states[config.entity].state;
-    const measurement = hass.states[config.entity].attributes.unit_of_measurement || "";
+    const displayState = config.displayEntity
+      ? config.displayAttribute 
+        ? hass.states[config.displayEntity].attributes[config.displayAttribute] 
+        : hass.states[config.displayEntity].state
+      : entityState;
+    const measurement = config.displayEntity
+      ? hass.states[config.displayEntity].attributes.unit_of_measurement || ""
+      : hass.states[config.entity].attributes.unit_of_measurement || "";
 
 
     if (entityState !== this._entityState) {
@@ -148,28 +157,29 @@ class BigNumberCard extends HTMLElement {
       let value = undefined;
       let unit = measurement;
       if (config.format) {
-        if (isNaN(parseFloat(value)) || !isFinite(value)) {
+        if (isNaN(parseFloat(displayState)) || !isFinite(displayState)) {
             // do nothing if not a number
+          value = displayState;
         } else if (config.format === 'brightness') {
-          value = Math.round((parseFloat(entityState) / 255) * 100);
+          value = Math.round((parseFloat(displayState) / 255) * 100);
           unit = '%';
         } else if (config.format.startsWith('duration')) {
-          value = secondsToDuration(config.format === 'duration-m' ? parseFloat(entityState) / 1000 : parseFloat(entityState));
+          value = secondsToDuration(config.format === 'duration-m' ? parseFloat(displayState) / 1000 : parseFloat(displayState));
           unit = undefined;
         } else if (config.format.startsWith('precision')) {
           const precision = parseInt(config.format.slice(-1), 10);
-          value = parseFloat(value).toFixed(precision)
+          value = parseFloat(displayState).toFixed(precision)
         } else if (config.format === 'kilo') {
-          value = (parseFloat(entityState) / 1000).toFixed(2);
+          value = (parseFloat(displayState) / 1000).toFixed(2);
         } else if (config.format === 'invert') {
-          value = (parseFloat(entityState) - parseFloat(entityState) * 2)
+          value = (parseFloat(displayState) - parseFloat(displayState) * 2)
           if (config.round != null) { value = value.toFixed(config.round); }
         } else if (config.format === 'position') {
-          value = (100 - parseFloat(entityState));
+          value = (100 - parseFloat(displayState));
           if (config.round != null) { value = value.toFixed(config.round); }
         }
       } else {
-        value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round));
+        value = (config.round == null ? displayState : parseFloat(displayState).toFixed(config.round));
       }
   
       if (config.hideunit==true) 
