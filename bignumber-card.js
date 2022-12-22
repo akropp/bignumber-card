@@ -189,7 +189,7 @@ class BigNumberCard extends HTMLElement {
       if (config.hideunit==true) 
         { root.getElementById("value").textContent = `${value}`; }
       else 
-        { root.getElementById("value").innerHTML = unit ? `${value}<small>${unit}</small>` : '${value}'; }
+        { root.getElementById("value").innerHTML = unit ? `${value}<small>${unit}</small>` : `${value}`; }
       if (this.isNoneConfig){
         if (isNaN(value)) {
           if (config.noneString) {
