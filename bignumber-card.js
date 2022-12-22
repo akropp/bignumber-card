@@ -2,7 +2,7 @@
 
 const leftPad = (num) => (num < 10 ? `0${num}` : num);
 
-export function secondsToDuration(d) {
+function secondsToDuration(d) {
     const h = Math.floor(d / 3600);
     const m = Math.floor((d % 3600) / 60);
     const s = Math.floor((d % 3600) % 60);
@@ -127,8 +127,6 @@ class BigNumberCard extends HTMLElement {
   _translatePercent(value, min, max) {
     return 100-100 * (value - min) / (max - min);
   }
-
-  _formatNumber()
 
   set hass(hass) {
     const config = this._config;
