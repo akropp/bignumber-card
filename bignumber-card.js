@@ -164,7 +164,11 @@ class BigNumberCard extends HTMLElement {
           value = Math.round((parseFloat(displayState) / 255) * 100);
           unit = '%';
         } else if (config.format.startsWith('duration')) {
-          value = secondsToDuration(config.format === 'duration-m' ? parseFloat(displayState) / 1000 : parseFloat(displayState));
+          value = secondsToDuration(config.format === 'duration-ms' 
+                                    ? parseFloat(displayState) / 1000 
+                                    : config.format === 'duration-m'
+                                      ? parseFloat(displayState) * 60
+                                      : parseFloat(displayState));
           unit = undefined;
         } else if (config.format.startsWith('precision')) {
           const precision = parseInt(config.format.slice(-1), 10);
