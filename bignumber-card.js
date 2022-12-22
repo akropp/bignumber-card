@@ -1,3 +1,5 @@
+import { formatNumber } from './lib/format_number';
+
 class BigNumberCard extends HTMLElement {
   _DEFAULT_STYLE(){return 'var(--label-badge-blue)';}
   _DEFAULT_COLOR(){return 'var(--primary-text-color)';}
@@ -17,6 +19,7 @@ class BigNumberCard extends HTMLElement {
     if (!cardConfig.scale) cardConfig.scale = "50px";
     if (!cardConfig.from) cardConfig.from = "left";
     if (!cardConfig.opacity) cardConfig.opacity = "0.5";
+    if (!cardConfig.format) cardConfig.format = null;
     if (!cardConfig.noneString) cardConfig.nonestring = null;
     if (!cardConfig.noneCardClass) cardConfig.noneCardClass = null;
     if (!cardConfig.noneValueClass) cardConfig.noneValueClass = null;
@@ -114,6 +117,7 @@ class BigNumberCard extends HTMLElement {
       : hass.states[config.entity].state;
     const measurement = hass.states[config.entity].attributes.unit_of_measurement || "";
 
+
     if (entityState !== this._entityState) {
       if (config.min !== undefined && config.max !== undefined) {
         root.querySelector("ha-card").style.setProperty('--bignumber-percent', `${this._translatePercent(entityState, config.min, config.max)}%`);
@@ -121,7 +125,32 @@ class BigNumberCard extends HTMLElement {
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getStyle(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-color', `${this._getColor(entityState, config)}`);
       this._entityState = entityState
+
       let value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round)) 
+      if (config.format) {
+        if (isNaN(parseFloat(value)) || !isFinite(value)) {
+            // do nothing if not a number
+        } else if (config.format === 'brightness') {
+            let value = Math.round((value / 255) * 100);
+            unit = '%';
+        } else if (config.format.startsWith('duration')) {
+          let value = secondsToDuration(config.format === 'duration-m' ? value / 1000 : value);
+            unit = undefined;
+        } else if (config.format.startsWith('precision')) {
+            const precision = parseInt(config.format.slice(-1), 10);
+            let value = formatNumber(parseFloat(value), hass.locale, {
+                minimumFractionDigits: precision,
+                maximumFractionDigits: precision,
+            });
+        } else if (config.format === 'kilo') {
+          let value = formatNumber(value / 1000, hass.locale, { maximumFractionDigits: 2 });
+        } else if (config.format === 'invert') {
+          let value = formatNumber(value - value * 2, hass.locale);
+        } else if (config.format === 'position') {
+          let value = formatNumber(100 - value, hass.locale);
+        }
+      }
+  
       if (config.hideunit==true) 
         { root.getElementById("value").textContent = `${value}`; }
       else 
