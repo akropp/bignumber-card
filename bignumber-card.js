@@ -165,9 +165,9 @@ class BigNumberCard extends HTMLElement {
           unit = '%';
         } else if (config.format.startsWith('duration')) {
           value = secondsToDuration(config.format === 'duration-ms' 
-                                    ? parseFloat(displayState) / 1000 
+                                    ? parseFloat(displayState) / 1000.0
                                     : config.format === 'duration-m'
-                                      ? parseFloat(displayState) * 60
+                                      ? parseFloat(displayState) * 60.0
                                       : parseFloat(displayState));
           unit = undefined;
         } else if (config.format.startsWith('precision')) {
