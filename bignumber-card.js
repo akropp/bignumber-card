@@ -146,7 +146,7 @@ class BigNumberCard extends HTMLElement {
       : hass.states[config.entity].attributes.unit_of_measurement || "";
 
 
-    if (entityState !== this._entityState || displayState != this._displayState) {
+    if (entityState !== this._entityState || displayState !== this._displayState) {
       if (config.min !== undefined && config.max !== undefined) {
         root.querySelector("ha-card").style.setProperty('--bignumber-percent', `${this._translatePercent(entityState, config.min, config.max)}%`);
       }
